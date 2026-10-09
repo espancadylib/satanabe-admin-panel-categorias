@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#09090b" />
+  <title>Satanabe Admin v1.1.3 Alpha</title>
+  <link rel="stylesheet" href="styles.css?v=1.1.3-categorias" />
+</head>
+<body>
+  <main class="shell">
+    <section id="loginView" class="auth-view">
+      <div class="brand-mark">S</div>
+      <div class="eyebrow">PAINEL PRIVADO</div>
+      <h1>Satanabe Admin</h1>
+      <p class="muted center">Keys, clientes, renovações, patches e acompanhamento em um só lugar.</p>
+      <form id="loginForm" class="glass login-card">
+        <label><span>E-mail</span><input id="email" type="email" autocomplete="username" value="Jirobagamer@gmail.com" required /></label>
+        <label><span>Senha</span><input id="password" type="password" autocomplete="current-password" required /></label>
+        <button id="loginButton" class="primary wide" type="submit">Entrar</button>
+        <div id="loginError" class="error-text"></div>
+      </form>
+    </section>
+
+    <section id="appView" class="hidden">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">SATANABE ADMIN • V1.1.3 ALPHA</div>
+          <h2 id="pageTitle">Overview</h2>
+        </div>
+        <div class="top-actions">
+          <div class="notification-wrap">
+            <button id="notificationButton" class="icon-button notification-button" type="button" aria-label="Notificações">
+              <span aria-hidden="true">🔔</span><span id="notificationCount" class="notification-count hidden">0</span>
+            </button>
+            <section id="notificationPanel" class="notification-panel glass hidden" aria-label="Central de notificações">
+              <div class="notification-head">
+                <div><div class="eyebrow">LEMBRETES</div><h3>Expirações</h3></div>
+                <button id="notificationClose" class="icon-button small-icon" type="button">×</button>
+              </div>
+              <div id="notificationList" class="mini-list"></div>
+              <button class="secondary wide" type="button" data-go="renewals">Abrir fila completa</button>
+            </section>
+          </div>
+          <button id="refreshButton" class="icon-button" type="button" aria-label="Atualizar">↻</button>
+          <button id="logoutButton" class="ghost" type="button">Sair</button>
+        </div>
+      </header>
+
+      <nav class="tabs glass">
+        <button class="tab active" data-panel="overview">Overview</button>
+        <button class="tab" data-panel="keys">Keys</button>
+        <button class="tab" data-panel="clients">Clientes</button>
+        <button class="tab" data-panel="resellers">Revendedores</button>
+        <button class="tab" data-panel="renewals">Renovações</button>
+        <button class="tab" data-panel="patches">Patches</button>
+        <button class="tab" data-panel="activity">Logs</button>
+      </nav>
+
+      <div id="globalFlash" class="flash hidden"></div>
+
+      <section id="overviewPanel" class="panel">
+        <div class="summary-grid seven">
+          <article class="stat glass"><span>Keys ativas</span><strong id="ovActive">0</strong></article>
+          <article class="stat glass warn"><span>Vencem hoje</span><strong id="ovToday">0</strong></article>
+          <article class="stat glass"><span>Vencem amanhã</span><strong id="ovTomorrow">0</strong></article>
+          <article class="stat glass"><span>Vencem em 3 dias</span><strong id="ov3d">0</strong></article>
+          <article class="stat glass"><span>Aparelhos conectados</span><strong id="ovDevices">0</strong></article>
+          <article class="stat glass"><span>Patches ativos</span><strong id="ovPatches">0/0</strong></article>
+          <article class="stat glass revenue"><span>Receita do mês</span><strong id="ovRevenue">R$ 0</strong></article>
+        </div>
+
+        <section class="glass section-card">
+          <div class="section-head">
+            <div><div class="eyebrow">RENOVAÇÕES</div><h3>Clientes para cobrar</h3><p class="muted">Prioridade automática para keys vencidas ou próximas do vencimento.</p></div>
+            <button class="secondary" type="button" data-go="renewals">Abrir fila</button>
+          </div>
+          <div id="overviewAlerts" class="mini-list"></div>
+        </section>
+
+        <section class="overview-lower-grid">
+          <section class="glass section-card compact-card">
+            <div class="eyebrow">PIX</div><h3>Recebimento</h3>
+            <p class="muted">PIX copia e cola configurado para o atendimento.</p>
+            <div class="copy-field"><code id="pixPreview">000201…F699</code><button id="copyPixButton" class="secondary" type="button">Copiar PIX</button></div>
+          </section>
+
+          <section class="glass section-card compact-card">
+            <div class="eyebrow">WHATSAPP</div><h3>Mensagem de renovação</h3>
+            <textarea id="renewalTemplate" rows="4" placeholder="Olá {nome}..."></textarea>
+            <p class="hint">Variáveis: {nome}, {data}, {plano}, {key}</p>
+            <button id="saveTemplate" class="secondary" type="button">Salvar mensagem</button>
+          </section>
+
+          <section class="glass section-card compact-card">
+            <div class="eyebrow">BACKUP</div><h3>Backup administrativo</h3>
+            <p class="muted">Exporta clientes, keys, vendas, catálogo e versões de patches.</p>
+            <button id="backupButton" class="secondary" type="button">Criar backup</button>
+          </section>
+        </section>
+      </section>
+
+      <section id="keysPanel" class="panel hidden">
+        <div class="summary-grid four">
+          <article class="stat glass"><span>Ativas</span><strong id="keyActive">0</strong></article>
+          <article class="stat glass"><span>Pendentes</span><strong id="keyPending">0</strong></article>
+          <article class="stat glass"><span>Expiradas</span><strong id="keyExpired">0</strong></article>
+          <article class="stat glass"><span>Revogadas</span><strong id="keyRevoked">0</strong></article>
+        </div>
+
+        <section class="glass toolbar keys-toolbar">
+          <div class="search"><span>⌕</span><input id="keySearch" type="text" placeholder="Buscar pelo telefone, cliente ou key" /></div>
+          <button id="exactSearchButton" class="secondary" type="button">Buscar key exata</button>
+          <button id="createKeyButton" class="primary" type="button">+ Criar key</button>
+        </section>
+
+        <section class="filter-row">
+          <button class="filter active" data-key-filter="all">Todas</button>
+          <button class="filter" data-key-filter="active">Ativas</button>
+          <button class="filter" data-key-filter="pending">Pendentes</button>
+          <button class="filter" data-key-filter="expired">Expiradas</button>
+          <button class="filter" data-key-filter="revoked">Desativadas / revogadas</button>
+        </section>
+
+        <section class="glass bulkbar">
+          <div class="bulk-selection"><label class="checkline"><input id="selectVisible" type="checkbox" /> Selecionar visíveis</label><span id="selectedCount" class="pill">0 selecionadas</span></div>
+          <select id="bulkAction">
+            <option value="">Ação em massa…</option>
+            <option value="revoke">Desativar</option>
+            <option value="reactivate">Reativar</option>
+            <option value="add7">Adicionar 7 dias</option>
+            <option value="add30">Adicionar 30 dias</option>
+            <option value="max">Alterar aparelhos</option>
+            <option value="delete">Excluir selecionadas</option>
+          </select>
+          <button id="applyBulk" class="secondary" type="button">Aplicar</button>
+          <div class="bulk-more">
+            <button id="exportCsv" class="ghost compact" type="button">CSV</button>
+            <button id="exportTxt" class="ghost compact" type="button">TXT</button>
+            <button id="expireRevoked" class="ghost compact" type="button">Expirar desativadas</button>
+            <button id="deleteExpired" class="danger compact" type="button">Excluir expiradas</button>
+          </div>
+        </section>
+
+        <section id="keyList" class="card-list"></section>
+        <div id="keyEmpty" class="empty hidden">Nenhuma key encontrada.</div>
+      </section>
+
+      <section id="clientsPanel" class="panel hidden">
+        <section class="glass toolbar client-toolbar">
+          <div class="search"><span>⌕</span><input id="clientSearch" type="text" placeholder="Buscar por nome ou telefone" /></div>
+          <button id="newClientButton" class="primary" type="button">+ Novo cliente</button>
+        </section>
+        <section id="clientList" class="client-grid"></section>
+        <div id="clientEmpty" class="empty hidden">Nenhum cliente cadastrado ainda.</div>
+      </section>
+
+      <section id="resellersPanel" class="panel hidden">
+        <div class="summary-grid five reseller-summary">
+          <article class="stat glass"><span>Revendedores</span><strong id="resellerTotal">0</strong></article>
+          <article class="stat glass"><span>Ativos</span><strong id="resellerActive">0</strong></article>
+          <article class="stat glass"><span>Keys ativas</span><strong id="resellerActiveKeys">0</strong></article>
+          <article class="stat glass"><span>Clientes</span><strong id="resellerClients">0</strong></article>
+          <article class="stat glass revenue"><span>Receita do mês</span><strong id="resellerRevenue">R$ 0</strong></article>
+        </div>
+
+        <div id="resellerListView">
+          <section class="glass toolbar client-toolbar">
+            <div class="search"><span>⌕</span><input id="resellerSearch" type="text" placeholder="Buscar loja, responsável, e-mail ou WhatsApp" /></div>
+            <button id="newResellerButton" class="primary" type="button">+ Criar revendedor</button>
+          </section>
+          <section id="resellerList" class="client-grid reseller-grid"></section>
+          <div id="resellerEmpty" class="empty hidden">Nenhum revendedor cadastrado ainda.</div>
+        </div>
+
+        <div id="resellerDetailView" class="hidden">
+          <section class="glass reseller-detail-head">
+            <div class="reseller-detail-title">
+              <button id="backToResellers" class="ghost compact" type="button">← Voltar</button>
+              <div><div class="eyebrow">PAINEL DO REVENDEDOR</div><h3 id="resellerDetailName">Loja</h3><div id="resellerDetailMeta" class="meta"></div></div>
+            </div>
+            <div class="row-actions"><button id="openResellerPanelButton" class="ghost" type="button">Abrir painel</button><button id="sendResellerAccessButton" class="secondary" type="button">Enviar acesso</button><button id="editResellerButton" class="secondary" type="button">Editar</button><button id="toggleResellerButton" class="danger" type="button">Desativar revendedor</button></div>
+          </section>
+
+          <div class="summary-grid six reseller-detail-summary">
+            <article class="stat glass"><span>Keys ativas</span><strong id="rdActiveKeys">0</strong></article>
+            <article class="stat glass"><span>Pendentes</span><strong id="rdPendingKeys">0</strong></article>
+            <article class="stat glass"><span>Expiradas</span><strong id="rdExpiredKeys">0</strong></article>
+            <article class="stat glass"><span>Clientes</span><strong id="rdClients">0</strong></article>
+            <article class="stat glass"><span>Aparelhos</span><strong id="rdDevices">0</strong></article>
+            <article class="stat glass revenue"><span>Receita do mês</span><strong id="rdRevenue">R$ 0</strong></article>
+          </div>
+
+          <section class="filter-row reseller-subtabs">
+            <button class="filter active" data-reseller-subtab="overview">Overview</button>
+            <button class="filter" data-reseller-subtab="keys">Keys</button>
+            <button class="filter" data-reseller-subtab="clients">Clientes</button>
+          </section>
+
+          <section id="resellerOverviewSub" class="reseller-subpanel">
+            <div class="overview-lower-grid">
+              <section class="glass section-card compact-card"><div class="eyebrow">LOJA</div><h3 id="rdStoreName">—</h3><p id="rdStoreSlug" class="muted">—</p></section>
+              <section class="glass section-card compact-card"><div class="eyebrow">CONTATO</div><h3 id="rdOwnerName">—</h3><p id="rdOwnerContact" class="muted">—</p></section>
+              <section class="glass section-card compact-card"><div class="eyebrow">RECEITA</div><h3 id="rdTotalRevenue">R$ 0</h3><p class="muted">Receita histórica registrada para este revendedor.</p></section>
+            </div>
+            <section class="glass section-card"><div class="section-head"><div><div class="eyebrow">PERMISSÕES DO FUTURO PAINEL</div><h3>Acesso do revendedor</h3></div></div><div id="rdPermissions" class="permission-pills"></div></section>
+          </section>
+
+          <section id="resellerKeysSub" class="reseller-subpanel hidden">
+            <section class="glass toolbar keys-toolbar"><div class="search"><span>⌕</span><input id="resellerKeySearch" type="text" placeholder="Buscar key, cliente ou telefone" /></div></section>
+            <section id="resellerKeyList" class="card-list"></section>
+            <div id="resellerKeyEmpty" class="empty hidden">Esse revendedor ainda não possui keys.</div>
+          </section>
+
+          <section id="resellerClientsSub" class="reseller-subpanel hidden">
+            <section class="glass toolbar client-toolbar"><div class="search"><span>⌕</span><input id="resellerClientSearch" type="text" placeholder="Buscar cliente por nome ou telefone" /></div></section>
+            <section id="resellerClientList" class="client-grid"></section>
+            <div id="resellerClientEmpty" class="empty hidden">Esse revendedor ainda não possui clientes.</div>
+          </section>
+        </div>
+      </section>
+
+      <section id="renewalsPanel" class="panel hidden">
+        <section class="glass section-card">
+          <div class="section-head">
+            <div><div class="eyebrow">FILA DE RENOVAÇÃO</div><h3>Clientes para contatar</h3><p class="muted">Use o WhatsApp, marque o contato e renove direto daqui.</p></div>
+            <span id="renewalPotential" class="pill">R$ 0 potencial</span>
+          </div>
+          <div class="filter-row no-margin">
+            <button class="filter active" data-renew-filter="today">Hoje / vencidas</button>
+            <button class="filter" data-renew-filter="tomorrow">Amanhã</button>
+            <button class="filter" data-renew-filter="3d">Até 3 dias</button>
+            <button class="filter" data-renew-filter="7d">Até 7 dias</button>
+            <button class="filter" data-renew-filter="not-contacted">Não contatadas</button>
+          </div>
+        </section>
+        <section id="renewalList" class="card-list"></section>
+        <div id="renewalEmpty" class="empty hidden">Nenhuma renovação nesse filtro.</div>
+      </section>
+
+      <section id="patchesPanel" class="panel hidden">
+        <div class="summary-grid four">
+          <article class="stat glass"><span>Ativos</span><strong id="patchActive">0</strong></article>
+          <article class="stat glass"><span>Desativados</span><strong id="patchDisabled">0</strong></article>
+          <article class="stat glass"><span>Total</span><strong id="patchTotal">0</strong></article>
+          <article class="stat glass"><span>Uso salvo</span><strong id="patchUsage">0</strong></article>
+        </div>
+        <section class="glass system-card">
+          <div><div class="eyebrow">CONTROLE GLOBAL</div><h3>Segurança e manutenção</h3><p class="muted">O kill switch bloqueia novos downloads e zera estados salvos. O modo manutenção também bloqueia o uso enquanto estiver ativo.</p></div>
+          <div class="system-actions"><button id="killSwitch" class="danger" type="button">Kill switch</button><button id="maintenanceButton" class="secondary" type="button">Modo manutenção</button></div>
+          <label class="full"><span>Mensagem de manutenção</span><input id="maintenanceMessage" type="text" maxlength="500" /></label>
+        </section>
+        <section class="glass patchbar"><button id="importPatchButton" class="primary" type="button">+ Importar patch</button><button id="enableAll" class="secondary" type="button">Ativar todos</button><button id="disableAll" class="danger" type="button">Desativar todos</button></section>
+        <section id="patchList" class="card-list"></section>
+        <div id="patchEmpty" class="empty hidden">Nenhum patch cadastrado.</div>
+      </section>
+
+      <section id="activityPanel" class="panel hidden">
+        <section class="glass section-card"><div class="section-head"><div><div class="eyebrow">LOG ADMINISTRATIVO</div><h3>Últimas alterações</h3></div><button id="refreshActivity" class="secondary" type="button">Atualizar</button></div></section>
+        <section id="activityList" class="timeline"></section>
+      </section>
+    </section>
+  </main>
+
+  <div id="modalBackdrop" class="modal-backdrop hidden"></div>
+
+  <div id="createKeyModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-card glass">
+    <div class="modal-head"><div><div class="eyebrow">NOVA VENDA</div><h3>Criar key</h3></div><button class="icon-button close-modal" type="button">×</button></div>
+    <form id="createKeyForm" class="form-grid">
+      <label class="full"><span>Procurar cliente por nome ou telefone</span><div class="search embedded search-with-action"><span>⌕</span><input id="createClientSearch" type="search" inputmode="search" autocomplete="off" placeholder="Digite o número ou nome" /><button id="createClientSearchButton" class="mini" type="button">Buscar</button></div><small id="createClientSearchStatus" class="field-hint">Digite para filtrar os clientes. Enter apenas pesquisa — não gera key.</small></label>
+      <label class="full"><span>Cliente</span><select id="createClient"><option value="">Sem cliente</option></select></label>
+      <label class="full"><span>Plano</span><select id="createPlan">
+        <option value="3h_test">3 horas • Teste grátis</option>
+        <option value="3h_paid">3 horas • R$ 4</option>
+        <option value="10h">10 horas • R$ 8</option>
+        <option value="1d">1 dia • R$ 14</option>
+        <option value="3d">3 dias • R$ 30</option>
+        <option value="1w">7 dias • R$ 40</option>
+        <option value="1m" selected>1 mês • R$ 70</option>
+      </select></label>
+      <input id="createDuration" type="hidden" value="1m" />
+      <label><span>Aparelhos por key</span><input id="createDevices" type="number" min="1" max="20" value="1" /></label>
+      <label><span>Quantidade de keys</span><input id="createQuantity" type="number" min="1" max="100" value="1" /></label>
+      <label><span>Valor por key (R$)</span><input id="createPrice" type="number" min="0" step="0.01" value="70" /></label>
+      <label><span>Total previsto</span><input id="createTotal" type="text" value="R$ 70,00" readonly /></label>
+      <label class="full"><span>Observação</span><input id="createNote" type="text" maxlength="200" placeholder="Opcional" /></label>
+      <button id="submitCreateKey" class="primary wide full" type="submit">Gerar key(s)</button>
+    </form>
+  </div></div>
+
+  <div id="keysResultModal" class="modal hidden"><div class="modal-card glass"><div class="modal-head"><div><div class="eyebrow">KEYS GERADAS</div><h3 id="keysResultTitle">Copie agora</h3></div><button class="icon-button close-modal" type="button">×</button></div><pre id="keysResult" class="key-result"></pre><div class="modal-actions"><button id="copyAllCreated" class="primary" type="button">Copiar todas</button><button id="copyPixAfterCreate" class="secondary" type="button">Copiar PIX</button></div></div></div>
+
+  <div id="clientModal" class="modal hidden"><div class="modal-card glass"><div class="modal-head"><div><div class="eyebrow">CLIENTE</div><h3 id="clientModalTitle">Novo cliente</h3></div><button class="icon-button close-modal" type="button">×</button></div><form id="clientForm" class="form-grid"><input id="clientId" type="hidden" /><label class="full"><span>Nome</span><input id="clientName" required maxlength="120" /></label><label class="full"><span>Número de telefone / WhatsApp</span><input id="clientPhone" inputmode="tel" placeholder="Ex.: 21999999999" maxlength="40" /></label><button class="primary wide full" type="submit">Salvar cliente</button></form></div></div>
+
+  <div id="clientDetailModal" class="modal hidden"><div class="modal-card glass large"><div class="modal-head"><div><div class="eyebrow">HISTÓRICO DO CLIENTE</div><h3 id="clientDetailTitle">Cliente</h3></div><button class="icon-button close-modal" type="button">×</button></div><div id="clientDetailBody"></div></div></div>
+
+  <div id="keyDetailModal" class="modal hidden"><div class="modal-card glass large"><div class="modal-head"><div><div class="eyebrow">PAINEL INDIVIDUAL</div><h3 id="keyDetailTitle">Key</h3></div><button class="icon-button close-modal" type="button">×</button></div><div id="keyDetailBody"></div></div></div>
+
+  <div id="editKeyModal" class="modal hidden"><div class="modal-card glass"><div class="modal-head"><div><div class="eyebrow">EDITAR KEY</div><h3 id="editKeyTitle">Licença</h3></div><button class="icon-button close-modal" type="button">×</button></div><form id="editKeyForm" class="form-grid"><input id="editKeyId" type="hidden" /><label class="full"><span>Cliente</span><select id="editKeyClient"><option value="">Sem cliente</option></select></label><label class="full"><span>Plano</span><input id="editKeyPlan" /></label><label><span>Valor (R$)</span><input id="editKeyPrice" type="number" min="0" step="0.01" /></label><label><span>Máx. aparelhos</span><input id="editKeyDevices" type="number" min="1" max="20" /></label><label class="full"><span>Observação</span><input id="editKeyNote" maxlength="200" /></label><button class="primary wide full" type="submit">Salvar</button></form></div></div>
+
+  <div id="devicesModal" class="modal hidden"><div class="modal-card glass"><div class="modal-head"><div><div class="eyebrow">APARELHOS</div><h3>Dispositivos desta key</h3></div><button class="icon-button close-modal" type="button">×</button></div><div id="deviceList" class="mini-list"></div></div></div>
+
+  <div id="renewModal" class="modal hidden"><div class="modal-card glass"><div class="modal-head"><div><div class="eyebrow">RENOVAR</div><h3 id="renewTitle">Licença</h3></div><button class="icon-button close-modal" type="button">×</button></div><form id="renewForm" class="form-grid"><input id="renewLicenseId" type="hidden" /><label class="full"><span>Plano de renovação</span><select id="renewSeconds"><option value="86400" data-price="14">1 dia • R$ 14</option><option value="604800" data-price="40">7 dias • R$ 40</option><option value="2592000" data-price="70" selected>1 mês • R$ 70</option></select></label><label><span>Valor recebido (R$)</span><input id="renewAmount" type="number" min="0" step="0.01" value="70" /></label><div class="copy-payment"><span>PIX para cobrar</span><button id="renewCopyPix" class="secondary" type="button">Copiar PIX</button></div><label class="full"><span>Observação</span><input id="renewNote" placeholder="Opcional" /></label><button class="primary wide full" type="submit">Confirmar renovação</button></form></div></div>
+
+  <div id="resellerModal" class="modal hidden"><div class="modal-card glass large"><div class="modal-head"><div><div class="eyebrow">REVENDEDOR</div><h3 id="resellerModalTitle">Criar revendedor</h3></div><button class="icon-button close-modal" type="button">×</button></div>
+    <form id="resellerForm" class="form-grid"><input id="resellerId" type="hidden" />
+      <label><span>Nome da loja</span><input id="resellerStoreName" required maxlength="120" placeholder="Ex.: Alpha Store" /></label>
+      <label><span>Responsável</span><input id="resellerOwnerName" maxlength="120" placeholder="Nome do revendedor" /></label>
+      <label><span>E-mail</span><input id="resellerEmail" type="email" maxlength="180" placeholder="E-mail usado para entrar no painel" /></label>
+      <label><span>WhatsApp</span><input id="resellerWhatsapp" inputmode="tel" maxlength="40" placeholder="21999999999" /></label>
+      <label class="full"><span>Identificador da loja</span><input id="resellerSlug" maxlength="80" placeholder="alpha-store" /><small class="field-hint">Será usado futuramente no endereço da Store. Deixe vazio para gerar pelo nome.</small></label>
+      <label class="full"><span>PIX copia e cola do revendedor</span><textarea id="resellerPix" rows="4" maxlength="1500" placeholder="O dinheiro da Store dele irá para este PIX quando integrarmos a loja."></textarea></label>
+      <fieldset class="full permission-box"><legend>Abas permitidas no painel</legend><label class="checkline"><input id="resellerPermOverview" type="checkbox" checked /> Overview</label><label class="checkline"><input id="resellerPermKeys" type="checkbox" checked /> Keys</label><label class="checkline"><input id="resellerPermClients" type="checkbox" checked /> Clientes</label><label class="checkline"><input id="resellerPermRevenue" type="checkbox" checked /> Receita</label></fieldset>
+      <label class="full"><span>Observação interna</span><input id="resellerNotes" maxlength="500" placeholder="Opcional" /></label>
+      <button id="saveResellerButton" class="primary wide full" type="submit">Criar revendedor</button>
+    </form>
+  </div></div>
+
+  <div id="accessLinkModal" class="modal hidden"><div class="modal-card glass"><div class="modal-head"><div><div class="eyebrow">ACESSO DO REVENDEDOR</div><h3>Link pronto para enviar</h3></div><button class="icon-button close-modal" type="button">×</button></div><p id="accessLinkHint" class="muted">Copie este link e envie ao revendedor.</p><label class="full"><span>Link de acesso</span><textarea id="accessLinkValue" rows="5" readonly></textarea></label><div class="modal-actions"><button id="copyAccessLink" class="primary" type="button">Copiar link</button><button class="secondary close-modal" type="button">Fechar</button></div></div></div>
+
+  <div id="importPatchModal" class="modal hidden"><div class="modal-card glass"><div class="modal-head"><div><div class="eyebrow">NOVO PATCH</div><h3>Importar .3105</h3></div><button class="icon-button close-modal" type="button">×</button></div><form id="importPatchForm" class="form-grid"><label><span>Nome no app</span><input id="importPatchName" required /></label><label><span>Status</span><select id="importPatchEnabled"><option value="true">Ativo</option><option value="false">Desativado</option></select></label><label class="full"><span>Categoria</span><select id="importPatchCategory" required><option value="rankeada">Rankeada</option><option value="apostado">Apostado</option><option value="skins">Skin</option></select><small class="field-hint">O patch será exibido apenas na categoria selecionada do Satanabe External.</small></label><label class="full"><span>Descrição</span><input id="importPatchDescription" /></label><label class="full"><span>Arquivo .3105</span><input id="importPatchFile" type="file" accept=".3105,application/octet-stream" required /></label><div id="importProgress" class="progress full hidden">Enviando…</div><button class="primary wide full" type="submit">Importar patch</button></form></div></div>
+
+  <div id="editPatchModal" class="modal hidden"><div class="modal-card glass"><div class="modal-head"><div><div class="eyebrow">EDITAR PATCH</div><h3 id="editPatchTitle">Patch</h3></div><button class="icon-button close-modal" type="button">×</button></div><form id="editPatchForm" class="form-grid"><input id="editPatchId" type="hidden" /><label><span>Nome no app</span><input id="editPatchName" required /></label><label><span>Categoria</span><select id="editPatchCategory" required><option value="rankeada">Rankeada</option><option value="apostado">Apostado</option><option value="skins">Skin</option></select></label><label class="full"><span>Descrição</span><input id="editPatchDescription" /></label><label class="full"><span>Substituir arquivo (opcional)</span><input id="editPatchFile" type="file" accept=".3105,application/octet-stream" /></label><label class="full"><span>Nota da versão</span><input id="editPatchVersionNote" placeholder="Ex.: ajuste de setembro" /></label><div id="editPatchProgress" class="progress full hidden">Salvando…</div><button class="primary wide full" type="submit">Salvar alterações</button></form></div></div>
+
+  <div id="versionsModal" class="modal hidden"><div class="modal-card glass large"><div class="modal-head"><div><div class="eyebrow">HISTÓRICO</div><h3 id="versionsTitle">Versões do patch</h3></div><button class="icon-button close-modal" type="button">×</button></div><div id="versionList" class="mini-list"></div></div></div>
+
+  <script type="module" src="app.js?v=1.1.3-categorias"></script>
+</body>
+</html>
